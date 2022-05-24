@@ -45,7 +45,6 @@ public class UserController {
         User user = userService.findById(id);
 
         if (user != null){
-            // userService.deleteById(id);
             // Solo queremos que pase a estado inactivo no borrarlo de verdad
             user.setActive(false);
             return ResponseEntity.ok(user);
@@ -59,7 +58,7 @@ public class UserController {
         User user = userService.findById(id);
 
         if (user != null){
-            // Guardamos solo la id de la user vieja, no nos interesa la nueva
+            // Guardamos solo la id del user vieja, no nos interesa la nueva
             newUser.setAlta(user.getAlta());
             newUser.setId(id);
             userService.update(newUser);
@@ -73,9 +72,7 @@ public class UserController {
     public ResponseEntity<User> payBooking(@PathVariable Long id, @RequestBody String paymentQuantity){
         try {
             float payment = Float.parseFloat(paymentQuantity);
-
             User user = userService.findById(id);
-
             if (user != null){
                 // El usuario tiene que tener el dinero para la reserva y el doble para la fianza
                 float paymentFee = payment*3;
@@ -85,14 +82,10 @@ public class UserController {
                     user.setSaldoRetenido(payment*2);
                     return ResponseEntity.ok(user);
                 }
-                System.err.print("Usuario no activo o con menos dinero del esperado: ");
-                System.err.println("activo: "+user.isActive()+". Saldo: "+user.getSaldo()+", dinero requerido: "+paymentFee);
                 return ResponseEntity.badRequest().build();
             }
-            System.err.println("Could not find user: "+id);
             return ResponseEntity.notFound().build();
         } catch (NumberFormatException e){
-            System.err.println("Number format exception. HINT: Try '.' instead of ',' for decimal numbers");
             return ResponseEntity.badRequest().build();
         }
     }
