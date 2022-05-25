@@ -2,6 +2,13 @@ package es.urjc.gestionusuarios.controller;
 
 import es.urjc.gestionusuarios.model.User;
 import es.urjc.gestionusuarios.service.UserService;
+import io.swagger.v3.core.util.Json;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,12 +25,33 @@ public class UserController {
     private UserService userService = new UserService();
 
     @GetMapping("/")
+    @Operation(summary = "Devuelve todos los Usuarios")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Users accessed and returned",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = User.class))}),
+            @ApiResponse(responseCode = "400",
+                    description = "Invalid url supplied",
+                    content = @Content)})
     public Collection<User> getUsers(){
         return userService.findAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id){
+    @Operation(summary = "Devuelve el Usuario con el ID adecuado")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Found the ID",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = User.class))}),
+            @ApiResponse(responseCode = "400",
+                    description = "Invalid id supplied",
+                    content = @Content),
+            @ApiResponse(responseCode = "404",
+                    description = "User not found",
+                    content = @Content) })
+    public ResponseEntity<User> getUserById(@Parameter(description = "Id del usuario")@PathVariable Long id){
         User user = userService.findById(id);
 
         if (user != null) {
@@ -34,14 +62,35 @@ public class UserController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<User> createUser(@RequestBody User user){
+    @Operation(summary = "Crea nuevo usuario")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Found the ID",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = User.class))}),
+            @ApiResponse(responseCode = "400",
+                    description = "Invalid body supplied",
+                    content = @Content) })
+    public ResponseEntity<User> createUser(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "User with new parameters to be modified (exclcluding the id)") @RequestBody User user){
         userService.save(user);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(user.getId()).toUri();
         return ResponseEntity.created(location).body(user);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<User> deleteUser(@PathVariable Long id){
+    @Operation(summary = "Pasa el estado del usuario a inactivo")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Found the ID",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = User.class))}),
+            @ApiResponse(responseCode = "400",
+                    description = "Invalid id supplied",
+                    content = @Content),
+            @ApiResponse(responseCode = "404",
+                    description = "User not found",
+                    content = @Content) })
+    public ResponseEntity<User> deleteUser(@Parameter(description = "Id del usuario a dar de baja")@PathVariable Long id){
         User user = userService.findById(id);
 
         if (user != null){
@@ -54,7 +103,19 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> replaceUser(@PathVariable Long id, @RequestBody User newUser){
+    @Operation(summary = "Cambia los datos del usuario")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Found the ID",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = User.class))}),
+            @ApiResponse(responseCode = "400",
+                    description = "Invalid id supplied",
+                    content = @Content),
+            @ApiResponse(responseCode = "404",
+                    description = "User not found",
+                    content = @Content) })
+    public ResponseEntity<User> replaceUser(@Parameter(description = "Id del usuario") @PathVariable Long id, @RequestBody User newUser){
         User user = userService.findById(id);
 
         if (user != null){
@@ -69,7 +130,21 @@ public class UserController {
     }
 
     @PostMapping(value = "/{id}/bikes", consumes = "text/plain")
-    public ResponseEntity<User> payBooking(@PathVariable Long id, @RequestBody String paymentQuantity){
+    @Operation(summary = "Reserva o devuelve una bicicleta (Quita o devuelve dinero al usuario)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Found the ID",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = User.class))}),
+            @ApiResponse(responseCode = "400",
+                    description = "Invalid id supplied, not text body that can be converted to float or not enough money",
+                    content = @Content),
+            @ApiResponse(responseCode = "404",
+                    description = "User not found",
+                    content = @Content) })
+    public ResponseEntity<User> payBooking(
+            @Parameter(description = "id del usuario") @PathVariable Long id,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Amount of money that renting the bike costs (without fee)") @RequestBody String paymentQuantity){
         try {
             float payment = Float.parseFloat(paymentQuantity);
             User user = userService.findById(id);
@@ -90,8 +165,21 @@ public class UserController {
         }
     }
 
-    @PostMapping(value = "/{id}/bikes", consumes = {})
-    public ResponseEntity<User> payMoneyBack(@PathVariable Long id){
+    @PostMapping(value = "/{id}/bikes")
+    @Operation(summary = "Devuelve una bicicleta (Todo el dinero retenido vuelve al saldo del usuario)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Found the ID",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = User.class))}),
+            @ApiResponse(responseCode = "400",
+                    description = "Invalid id supplied",
+                    content = @Content),
+            @ApiResponse(responseCode = "404",
+                    description = "User not found",
+                    content = @Content) })
+    public ResponseEntity<User> payMoneyBack(
+            @Parameter(description = "id del usuario")@PathVariable Long id){
         User user = userService.findById(id);
 
         if (user != null){
