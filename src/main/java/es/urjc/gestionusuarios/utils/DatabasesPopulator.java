@@ -16,8 +16,6 @@ import java.util.Arrays;
 @Profile("local")
 public class DatabasesPopulator {
 
-    private Logger log = LoggerFactory.getLogger(DatabasesPopulator.class);
-
     @Autowired
     private UserService userService = new UserService();
 
