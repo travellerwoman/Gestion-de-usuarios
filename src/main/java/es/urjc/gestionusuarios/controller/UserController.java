@@ -1,5 +1,6 @@
 package es.urjc.gestionusuarios.controller;
 
+import es.urjc.gestionusuarios.model.Payment;
 import es.urjc.gestionusuarios.model.User;
 import es.urjc.gestionusuarios.service.UserService;
 import io.swagger.v3.core.util.Json;
@@ -129,8 +130,8 @@ public class UserController {
         }
     }
 
-    @PostMapping(value = "/{id}/bikes", consumes = "text/plain")
-    @Operation(summary = "Reserva o devuelve una bicicleta (Quita o devuelve dinero al usuario)")
+    @PostMapping(value = "/{id}/deposit", consumes = "application/json")
+    @Operation(summary = "Reserva una bicicleta (Quita dinero al usuario)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200",
                     description = "Found the ID",
@@ -144,9 +145,9 @@ public class UserController {
                     content = @Content) })
     public ResponseEntity<User> payBooking(
             @Parameter(description = "id del usuario") @PathVariable Long id,
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Amount of money that renting the bike costs (without fee)") @RequestBody String paymentQuantity){
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Amount of money that renting the bike costs (without fee)") @RequestBody Payment paymentQuantity){
         try {
-            float payment = Float.parseFloat(paymentQuantity);
+            float payment = paymentQuantity.getAmount();
             User user = userService.findById(id);
             if (user != null){
                 // El usuario tiene que tener el dinero para la reserva y el doble para la fianza
@@ -165,7 +166,7 @@ public class UserController {
         }
     }
 
-    @PostMapping(value = "/{id}/bikes")
+    @DeleteMapping(value = "/{id}/deposit")
     @Operation(summary = "Devuelve una bicicleta (Todo el dinero retenido vuelve al saldo del usuario)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200",
