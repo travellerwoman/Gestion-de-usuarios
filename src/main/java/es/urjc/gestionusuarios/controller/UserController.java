@@ -2,6 +2,7 @@ package es.urjc.gestionusuarios.controller;
 
 import es.urjc.gestionusuarios.model.Payment;
 import es.urjc.gestionusuarios.model.User;
+import es.urjc.gestionusuarios.model.UserDTO;
 import es.urjc.gestionusuarios.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -30,11 +31,11 @@ public class UserController {
             @ApiResponse(responseCode = "200",
                     description = "Users accessed and returned",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = User.class))}),
+                            schema = @Schema(implementation = UserDTO.class))}),
             @ApiResponse(responseCode = "400",
                     description = "Invalid url supplied",
                     content = @Content)})
-    public Collection<User> getUsers(){
+    public Collection<UserDTO> getUsers(){
         return userService.findAll();
     }
 
@@ -44,18 +45,18 @@ public class UserController {
             @ApiResponse(responseCode = "200",
                     description = "Found the ID",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = User.class))}),
+                            schema = @Schema(implementation = UserDTO.class))}),
             @ApiResponse(responseCode = "400",
                     description = "Invalid id supplied",
                     content = @Content),
             @ApiResponse(responseCode = "404",
                     description = "User not found",
                     content = @Content) })
-    public ResponseEntity<User> getUserById(@Parameter(description = "Id del usuario")@PathVariable Long id){
+    public ResponseEntity<UserDTO> getUserById(@Parameter(description = "Id del usuario")@PathVariable Long id){
         User user = userService.findById(id);
 
         if (user != null) {
-            return ResponseEntity.ok(user);
+            return ResponseEntity.ok(new UserDTO(user));
         } else{
             return ResponseEntity.notFound().build();
         }
@@ -67,14 +68,14 @@ public class UserController {
             @ApiResponse(responseCode = "200",
                     description = "Found the ID",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = User.class))}),
+                            schema = @Schema(implementation = UserDTO.class))}),
             @ApiResponse(responseCode = "400",
                     description = "Invalid body supplied",
                     content = @Content) })
-    public ResponseEntity<User> createUser(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "User with new parameters to be modified (exclcluding the id)") @RequestBody User user){
+    public ResponseEntity<UserDTO> createUser(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "User with new parameters to be modified (exclcluding the id)") @RequestBody User user){
         userService.save(user);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(user.getId()).toUri();
-        return ResponseEntity.created(location).body(user);
+        return ResponseEntity.created(location).body(new UserDTO(user));
     }
 
     @DeleteMapping("/{id}")
@@ -83,20 +84,20 @@ public class UserController {
             @ApiResponse(responseCode = "200",
                     description = "Found the ID",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = User.class))}),
+                            schema = @Schema(implementation = UserDTO.class))}),
             @ApiResponse(responseCode = "400",
                     description = "Invalid id supplied",
                     content = @Content),
             @ApiResponse(responseCode = "404",
                     description = "User not found",
                     content = @Content) })
-    public ResponseEntity<User> deleteUser(@Parameter(description = "Id del usuario a dar de baja")@PathVariable Long id){
+    public ResponseEntity<UserDTO> deleteUser(@Parameter(description = "Id del usuario a dar de baja")@PathVariable Long id){
         User user = userService.findById(id);
 
         if (user != null){
             // Solo queremos que pase a estado inactivo no borrarlo de verdad
             user.setActive(false);
-            return ResponseEntity.ok(user);
+            return ResponseEntity.ok(new UserDTO(user));
         } else{
             return ResponseEntity.notFound().build();
         }
@@ -108,14 +109,14 @@ public class UserController {
             @ApiResponse(responseCode = "200",
                     description = "Found the ID",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = User.class))}),
+                            schema = @Schema(implementation = UserDTO.class))}),
             @ApiResponse(responseCode = "400",
                     description = "Invalid id supplied",
                     content = @Content),
             @ApiResponse(responseCode = "404",
                     description = "User not found",
                     content = @Content) })
-    public ResponseEntity<User> replaceUser(@Parameter(description = "Id del usuario") @PathVariable Long id, @RequestBody User newUser){
+    public ResponseEntity<UserDTO> replaceUser(@Parameter(description = "Id del usuario") @PathVariable Long id, @RequestBody User newUser){
         User user = userService.findById(id);
 
         if (user != null){
@@ -123,7 +124,7 @@ public class UserController {
             newUser.setAlta(user.getAlta());
             newUser.setId(id);
             userService.update(newUser);
-            return ResponseEntity.ok(newUser);
+            return ResponseEntity.ok(new UserDTO(newUser));
         } else{
             return ResponseEntity.notFound().build();
         }
@@ -135,21 +136,21 @@ public class UserController {
             @ApiResponse(responseCode = "200",
                     description = "Found the ID",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = User.class))}),
+                            schema = @Schema(implementation = UserDTO.class))}),
             @ApiResponse(responseCode = "400",
                     description = "Invalid id supplied, not text body that can be converted to float or not enough money",
                     content = @Content),
             @ApiResponse(responseCode = "404",
                     description = "User not found",
                     content = @Content) })
-    public ResponseEntity<User> payBooking(
+    public ResponseEntity<UserDTO> payBooking(
             @Parameter(description = "id del usuario") @PathVariable Long id,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Amount of money that renting the bike costs (without fee)") @RequestBody Payment paymentQuantity){
         try {
             User user = userService.findById(id);
             if (user != null){
                 if (userService.bookBike(user, paymentQuantity)){
-                    return ResponseEntity.ok(user);
+                    return ResponseEntity.ok(new UserDTO(user));
                 }
                 return ResponseEntity.badRequest().build();
             }
@@ -165,20 +166,20 @@ public class UserController {
             @ApiResponse(responseCode = "200",
                     description = "Found the ID",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = User.class))}),
+                            schema = @Schema(implementation = UserDTO.class))}),
             @ApiResponse(responseCode = "400",
                     description = "Invalid id supplied",
                     content = @Content),
             @ApiResponse(responseCode = "404",
                     description = "User not found",
                     content = @Content) })
-    public ResponseEntity<User> payMoneyBack(
+    public ResponseEntity<UserDTO> payMoneyBack(
             @Parameter(description = "id del usuario")@PathVariable Long id){
         User user = userService.findById(id);
 
         if (user != null){
             userService.returnBike(user);
-            return ResponseEntity.ok(user);
+            return ResponseEntity.ok(new UserDTO(user));
         }
         return ResponseEntity.notFound().build();
     }

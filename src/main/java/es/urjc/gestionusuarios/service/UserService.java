@@ -2,6 +2,7 @@ package es.urjc.gestionusuarios.service;
 
 import es.urjc.gestionusuarios.model.Payment;
 import es.urjc.gestionusuarios.model.User;
+import es.urjc.gestionusuarios.model.UserDTO;
 import es.urjc.gestionusuarios.repositories.UsersRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -57,8 +59,12 @@ public class UserService {
         }
     }
 
-    public Collection<User> findAll(){
-        return users.values();
+    public Collection<UserDTO> findAll(){
+        Collection<UserDTO> userDTOS = new HashSet<>();
+        for (User user : users.values()) {
+            userDTOS.add(new UserDTO(user));
+        }
+        return userDTOS;
     }
 
     public User findById(Long id) {
