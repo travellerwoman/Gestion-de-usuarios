@@ -3,7 +3,6 @@ package es.urjc.gestionusuarios.controller;
 import es.urjc.gestionusuarios.model.Payment;
 import es.urjc.gestionusuarios.model.User;
 import es.urjc.gestionusuarios.service.UserService;
-import io.swagger.v3.core.util.Json;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -147,15 +146,9 @@ public class UserController {
             @Parameter(description = "id del usuario") @PathVariable Long id,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Amount of money that renting the bike costs (without fee)") @RequestBody Payment paymentQuantity){
         try {
-            float payment = paymentQuantity.getAmount();
             User user = userService.findById(id);
             if (user != null){
-                // El usuario tiene que tener el dinero para la reserva y el doble para la fianza
-                float paymentFee = payment*3;
-                float saldo = user.getSaldo();
-                if (user.isActive() && saldo>paymentFee){
-                    user.setSaldo(saldo-paymentFee);
-                    user.setSaldoRetenido(payment*2);
+                if (userService.bookBike(user, paymentQuantity)){
                     return ResponseEntity.ok(user);
                 }
                 return ResponseEntity.badRequest().build();
@@ -184,9 +177,7 @@ public class UserController {
         User user = userService.findById(id);
 
         if (user != null){
-            float saldoRetenido = user.getSaldoRetenido();
-            user.setSaldo(user.getSaldo()+saldoRetenido);
-            user.setSaldoRetenido(0);
+            userService.returnBike(user);
             return ResponseEntity.ok(user);
         }
         return ResponseEntity.notFound().build();

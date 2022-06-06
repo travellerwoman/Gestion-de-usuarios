@@ -1,5 +1,6 @@
 package es.urjc.gestionusuarios.service;
 
+import es.urjc.gestionusuarios.model.Payment;
 import es.urjc.gestionusuarios.model.User;
 import es.urjc.gestionusuarios.repositories.UsersRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,5 +72,23 @@ public class UserService {
     public void update(User user) {
         users.put(user.getId(), user);
         userRepository.save(user);
+    }
+
+    public boolean bookBike(User user, Payment payment){
+        long paymentAmount = payment.getAmount();
+        float paymentFee = paymentAmount*3;
+        float saldo = user.getSaldo();
+        if (user.isActive() && saldo>paymentFee) {
+            user.setSaldo(saldo - paymentFee);
+            user.setSaldoRetenido(paymentAmount * 2);
+            return true;
+        }
+        return false;
+    }
+
+    public void returnBike(User user){
+        float saldoRetenido = user.getSaldoRetenido();
+        user.setSaldo(user.getSaldo()+saldoRetenido);
+        user.setSaldoRetenido(0);
     }
 }
