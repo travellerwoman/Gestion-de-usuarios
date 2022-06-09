@@ -146,18 +146,14 @@ public class UserController {
     public ResponseEntity<UserDTO> payBooking(
             @Parameter(description = "id del usuario") @PathVariable Long id,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Amount of money that renting the bike costs (without fee)") @RequestBody Payment paymentQuantity){
-        try {
-            User user = userService.findById(id);
-            if (user != null){
-                if (userService.bookBike(user, paymentQuantity)){
-                    return ResponseEntity.ok(new UserDTO(user));
-                }
-                return ResponseEntity.badRequest().build();
+        User user = userService.findById(id);
+        if (user != null){
+            if (userService.bookBike(user, paymentQuantity)){
+                return ResponseEntity.ok(new UserDTO(user));
             }
-            return ResponseEntity.notFound().build();
-        } catch (NumberFormatException e){
             return ResponseEntity.badRequest().build();
         }
+        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping(value = "/{id}/deposit")

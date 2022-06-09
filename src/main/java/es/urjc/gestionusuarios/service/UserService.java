@@ -7,7 +7,6 @@ import es.urjc.gestionusuarios.repositories.UsersRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
@@ -46,16 +45,11 @@ public class UserService {
     }
 
     public Date formatDate(int day, int month, int year) {
-        try{
-            String myDate = day+"/"+month+"/"+year;
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-            Date date = sdf.parse(myDate);
-            long millis = date.getTime();
-            return new Date(millis);
-        } catch (ParseException e){
-            System.err.println("Cannot parse: "+day+"/"+month+"/"+year);
-            throw new RuntimeException("Cannot parse: "+day+"/"+month+"/"+year);
-        }
+        String myDate = day+"/"+month+"/"+year;
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        Date date = sdf.parse(myDate);
+        long millis = date.getTime();
+        return new Date(millis);
     }
 
     public Collection<UserDTO> findAll(){
