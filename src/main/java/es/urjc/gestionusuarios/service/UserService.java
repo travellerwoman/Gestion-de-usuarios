@@ -32,7 +32,6 @@ public class UserService {
 
     public void save(User user) {
         if(user.getId() == null || user.getId() == 0) {
-            System.out.println(users);
             long id = nextId.getAndIncrement();
             user.setId(id);
             users.put(user.getId(), user);
