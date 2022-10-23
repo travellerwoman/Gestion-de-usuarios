@@ -2,25 +2,23 @@ package es.urjc.gestionusuarios.service;
 
 import es.urjc.gestionusuarios.model.Payment;
 import es.urjc.gestionusuarios.model.User;
+import es.urjc.gestionusuarios.model.UserCreationDTO;
 import es.urjc.gestionusuarios.model.UserDTO;
 import es.urjc.gestionusuarios.repositories.UsersRepository;
+import org.hibernate.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 
 @Service
 public class UserService {
-    private ConcurrentMap<Long, User> users = new ConcurrentHashMap<>();
-    private AtomicLong nextId = new AtomicLong(1);
 
     @Autowired
     private UsersRepository userRepository;
@@ -29,13 +27,15 @@ public class UserService {
 
     }
 
-    public void save(User user) {
+    public User save(User user) {
         if(user.getId() == null || user.getId() == 0) {
-            long id = nextId.getAndIncrement();
-            user.setId(id);
-            users.put(user.getId(), user);
-            userRepository.save(user);
-        }
+            return userRepository.save(user);
+        } throw new ObjectNotFoundException("User id not found", "id");
+    }
+
+    public User save(UserCreationDTO user) {
+        User user1 = new User(user, new Date());
+        return userRepository.save(user1);
     }
 
     public void saveAll(List<User> users){
@@ -44,7 +44,7 @@ public class UserService {
         }
     }
 
-    public Date formatDate(int day, int month, int year) {
+    public Date formatDate(int day, int month, int year) throws ParseException {
         String myDate = day+"/"+month+"/"+year;
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         Date date = sdf.parse(myDate);
@@ -54,23 +54,31 @@ public class UserService {
 
     public Collection<UserDTO> findAll(){
         Collection<UserDTO> userDTOS = new HashSet<>();
-        for (User user : users.values()) {
+        for (User user : userRepository.findAll()) {
             userDTOS.add(new UserDTO(user));
         }
         return userDTOS;
     }
 
     public User findById(Long id) {
-        return users.get(id);
+        if (userRepository.existsById(id)){
+            return userRepository.findById(id).get();
+        }
+        throw new ObjectNotFoundException(id, "User");
     }
 
     public void deleteById(Long id){
-        users.remove(id);
+        userRepository.deleteById(id);
     }
 
-    public void update(User user) {
-        users.put(user.getId(), user);
-        userRepository.save(user);
+    public User update(Long id, UserCreationDTO userCreationDTO) {
+        if (userRepository.existsById(id)) {
+            User originalUser = userRepository.getById(id);
+            User user1 = new User(userCreationDTO, originalUser.getAlta());
+            user1.setId(originalUser.getId());
+            user1.setActive(originalUser.isActive());
+            return userRepository.save(user1);
+        } throw new ObjectNotFoundException("Could not find user ID", "id");
     }
 
     public boolean bookBike(User user, Payment payment){
@@ -80,6 +88,7 @@ public class UserService {
         if (user.isActive() && saldo>paymentFee) {
             user.setSaldo(saldo - paymentFee);
             user.setSaldoRetenido(paymentAmount * 2);
+            userRepository.save(user);
             return true;
         }
         return false;
@@ -89,5 +98,11 @@ public class UserService {
         float saldoRetenido = user.getSaldoRetenido();
         user.setSaldo(user.getSaldo()+saldoRetenido);
         user.setSaldoRetenido(0);
+        userRepository.save(user);
+    }
+
+    public void bajaUsuario(User user) {
+        user.setActive(false);
+        userRepository.save(user);
     }
 }

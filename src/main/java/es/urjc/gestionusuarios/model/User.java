@@ -1,14 +1,13 @@
 package es.urjc.gestionusuarios.model;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.util.Date;
 
 @Entity
 public class User {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
     private Long id;
 
@@ -33,6 +32,17 @@ public class User {
         this.alta = alta;
         this.active = active;
         this.saldo = saldo;
+        this.saldoRetenido = 0;
+    }
+
+    public User(UserCreationDTO user, Date date) {
+        super();
+        this.login = user.getLogin();
+        this.password = user.getPassword();
+        this.nombre = user.getNombre();
+        this.alta = date;
+        this.active = true;
+        this.saldo = user.getSaldo();
         this.saldoRetenido = 0;
     }
 

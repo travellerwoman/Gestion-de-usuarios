@@ -28,4 +28,44 @@ public class UserCreationDTO {
         this.saldo = user.getSaldo();
         this.saldoRetenido = user.getSaldoRetenido();
     }
+
+    public String getLogin() {
+        return login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public float getSaldo() {
+        return saldo;
+    }
+
+    public void setSaldo(float saldo) {
+        this.saldo = saldo;
+    }
+
+    public float getSaldoRetenido() {
+        return saldoRetenido;
+    }
+
+    public void setSaldoRetenido(float saldoRetenido) {
+        this.saldoRetenido = saldoRetenido;
+    }
 }

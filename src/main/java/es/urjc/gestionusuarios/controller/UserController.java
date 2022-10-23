@@ -2,6 +2,7 @@ package es.urjc.gestionusuarios.controller;
 
 import es.urjc.gestionusuarios.model.Payment;
 import es.urjc.gestionusuarios.model.User;
+import es.urjc.gestionusuarios.model.UserCreationDTO;
 import es.urjc.gestionusuarios.model.UserDTO;
 import es.urjc.gestionusuarios.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -72,10 +73,10 @@ public class UserController {
             @ApiResponse(responseCode = "400",
                     description = "Invalid body supplied",
                     content = @Content) })
-    public ResponseEntity<UserDTO> createUser(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "User with new parameters to be modified (exclcluding the id)") @RequestBody User user){
-        userService.save(user);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(user.getId()).toUri();
-        return ResponseEntity.created(location).body(new UserDTO(user));
+    public ResponseEntity<UserDTO> createUser(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "User with new parameters to be modified (exclcluding the id)") @RequestBody UserCreationDTO user){
+        User newUser = userService.save(user);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(newUser.getId()).toUri();
+        return ResponseEntity.created(location).body(new UserDTO(newUser));
     }
 
     @DeleteMapping("/{id}")
@@ -96,7 +97,7 @@ public class UserController {
 
         if (user != null){
             // Solo queremos que pase a estado inactivo no borrarlo de verdad
-            user.setActive(false);
+            userService.bajaUsuario(user);
             return ResponseEntity.ok(new UserDTO(user));
         } else{
             return ResponseEntity.notFound().build();
@@ -116,15 +117,12 @@ public class UserController {
             @ApiResponse(responseCode = "404",
                     description = "User not found",
                     content = @Content) })
-    public ResponseEntity<UserDTO> replaceUser(@Parameter(description = "Id del usuario") @PathVariable Long id, @RequestBody User newUser){
+    public ResponseEntity<UserDTO> replaceUser(@Parameter(description = "Id del usuario") @PathVariable Long id, @RequestBody UserCreationDTO newUser){
         User user = userService.findById(id);
 
         if (user != null){
             // Guardamos solo la id del user vieja, no nos interesa la nueva
-            newUser.setAlta(user.getAlta());
-            newUser.setId(id);
-            userService.update(newUser);
-            return ResponseEntity.ok(new UserDTO(newUser));
+            return ResponseEntity.ok(new UserDTO(userService.update(id, newUser)));
         } else{
             return ResponseEntity.notFound().build();
         }

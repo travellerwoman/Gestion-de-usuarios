@@ -1,5 +1,6 @@
 package es.urjc.gestionusuarios.utils;
 
+import org.hibernate.ObjectNotFoundException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +14,7 @@ import java.text.ParseException;
 @ControllerAdvice
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler(value = { IllegalArgumentException.class, IllegalStateException.class })
+    @ExceptionHandler(value = { IllegalArgumentException.class})
     protected ResponseEntity<Object> handleConflict(
             RuntimeException ex, WebRequest request) {
         String bodyOfResponse = "The argument introduced is not valid";
@@ -63,6 +64,14 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 
     @ExceptionHandler(value = { NumberFormatException.class })
     protected ResponseEntity<Object> handleNumberFormatException(
+            RuntimeException ex, WebRequest request) {
+        String bodyOfResponse = "Cannot convert the parameter from string to number";
+        return handleExceptionInternal(ex, bodyOfResponse,
+                new HttpHeaders(), HttpStatus.CONFLICT, request);
+    }
+
+    @ExceptionHandler(value = { ObjectNotFoundException.class })
+    protected ResponseEntity<Object> userNotFound(
             RuntimeException ex, WebRequest request) {
         String bodyOfResponse = "Cannot convert the parameter from string to number";
         return handleExceptionInternal(ex, bodyOfResponse,
